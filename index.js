@@ -14,7 +14,8 @@ app.use(
       "https://project-cost-calculator-olive.vercel.app",
       "https://app.aspireths.com",
     ],
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
