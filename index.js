@@ -10,7 +10,7 @@ const app = express();
 // ✅ Enable CORS for frontend
 app.use(
   cors({
-    origin: "http://localhost:5173", // your frontend URL
+    origin: "https://project-cost-calculator-olive.vercel.app", // your frontend URL
     methods: ["GET", "POST"],
     credentials: true,
   })
