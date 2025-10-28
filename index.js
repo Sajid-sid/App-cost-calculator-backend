@@ -1,102 +1,3 @@
-// // index.js
-// const express = require("express");
-// const nodemailer = require("nodemailer");
-// const multer = require("multer");
-// const cors = require("cors");
-
-// const app = express();
-
-// // ✅ Enable CORS for frontend
-// app.use(
-//   cors({
-//     origin: "http://localhost:5173", // frontend URL
-//     methods: ["GET", "POST"],
-//     credentials: true,
-//   })
-// );
-
-// // ✅ Parse JSON and URL-encoded bodies
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
-
-// // ✅ Multer config to accept PDF in memory
-// const upload = multer({
-//   storage: multer.memoryStorage(),
-//   fileFilter: (req, file, cb) => {
-//     if (file.mimetype === "application/pdf") cb(null, true);
-//     else cb(new Error("Only PDF files are allowed"));
-//   },
-// });
-
-// // ✅ POST endpoint to send PDF via email
-// // ✅ POST endpoint to send PDF via email
-// app.post("/send-pdf", upload.single("pdf"), async (req, res) => {
-//   const { name, email, phone, message } = req.body;
-//   const pdfFile = req.file;
-
-//   if (!email || !pdfFile) {
-//     return res.status(400).json({ error: "Email and PDF are required" });
-//   }
-
-//   try {
-//     const transporter = nodemailer.createTransport({
-//       service: "gmail",
-//       auth: {
-//         user: "akhila.thada@gmail.com",
-//         pass: "ywnoafzgcbgfkffc",
-//       },
-//     });
-
-//     const mailOptions = {
-//       from: '"Aspire TekHub" <akhila.thada@gmail.com>',
-//       to: email,
-//       subject: `Your Project Requirements Summary${name ? ` - ${name}` : ""}`,
-//       text: `
-// Hello ${name || "there"},
-
-// Thank you for using Aspire TekHub's Project Cost Calculator.
-
-// Here are your submitted details:
-// ---------------------------------
-// Name: ${name || "N/A"}
-// Email: ${email}
-// Phone: ${phone || "N/A"}
-// Message: ${message || "No message provided."}
-
-// Your project requirements summary PDF is attached below.
-
-// Best regards,
-// Aspire TekHub Solutions
-//       `,
-//       attachments: [
-//         {
-//           filename: pdfFile.originalname,
-//           content: pdfFile.buffer,
-//         },
-//       ],
-//     };
-
-//     await transporter.sendMail(mailOptions);
-
-//     res.json({ message: "✅ Email sent successfully!" });
-//   } catch (err) {
-//     console.error("Error sending email:", err);
-//     res.status(500).json({ error: "Error sending email" });
-//   }
-// });
-
-
-// // ✅ Health check route
-// app.get("/", (req, res) => {
-//   res.send("Server is running.");
-// });
-
-// const PORT = process.env.PORT || 5000;
-// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
-
-
 // index.js
 const express = require("express");
 const nodemailer = require("nodemailer");
@@ -203,3 +104,103 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+
+
+
+// // index.js
+// const express = require("express");
+// const nodemailer = require("nodemailer");
+// const multer = require("multer");
+// const cors = require("cors");
+// require("dotenv").config();
+
+// const app = express();
+
+// // ✅ Enable CORS for frontend
+// app.use(
+//   cors({
+//     origin: "http://localhost:5173", // frontend URL
+//     methods: ["GET", "POST"],
+//     credentials: true,
+//   })
+// );
+
+// // ✅ Parse JSON and URL-encoded bodies
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
+
+// // ✅ Multer config to accept PDF in memory
+// const upload = multer({
+//   storage: multer.memoryStorage(),
+//   fileFilter: (req, file, cb) => {
+//     if (file.mimetype === "application/pdf") cb(null, true);
+//     else cb(new Error("Only PDF files are allowed"));
+//   },
+// });
+
+// // ✅ POST endpoint to send PDF via email
+// // ✅ POST endpoint to send PDF via email
+// app.post("/send-pdf", upload.single("pdf"), async (req, res) => {
+//   const { name, email, phone, message } = req.body;
+//   const pdfFile = req.file;
+
+//   if (!email || !pdfFile) {
+//     return res.status(400).json({ error: "Email and PDF are required" });
+//   }
+
+//   try {
+//     const transporter = nodemailer.createTransport({
+//       service: "gmail",
+//       auth: {
+//         user: "akhila.thada@gmail.com",
+//         pass: "ywnoafzgcbgfkffc",
+//       },
+//     });
+
+//     const mailOptions = {
+//       from: '"Aspire TekHub" <akhila.thada@gmail.com>',
+//       to: email,
+//       subject: `Your Project Requirements Summary${name ? ` - ${name}` : ""}`,
+//       text: `
+// Hello ${name || "there"},
+
+// Thank you for using Aspire TekHub's Project Cost Calculator.
+
+// Here are your submitted details:
+// ---------------------------------
+// Name: ${name || "N/A"}
+// Email: ${email}
+// Phone: ${phone || "N/A"}
+// Message: ${message || "No message provided."}
+
+// Your project requirements summary PDF is attached below.
+
+// Best regards,
+// Aspire TekHub Solutions
+//       `,
+//       attachments: [
+//         {
+//           filename: pdfFile.originalname,
+//           content: pdfFile.buffer,
+//         },
+//       ],
+//     };
+
+//     await transporter.sendMail(mailOptions);
+
+//     res.json({ message: "✅ Email sent successfully!" });
+//   } catch (err) {
+//     console.error("Error sending email:", err);
+//     res.status(500).json({ error: "Error sending email" });
+//   }
+// });
+
+
+// // ✅ Health check route
+// app.get("/", (req, res) => {
+//   res.send("Server is running.");
+// });
+
+// const PORT = process.env.PORT || 5000;
+// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
