@@ -1,0 +1,280 @@
+/* ===================== WRAPPER ===================== */
+.table-form-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 40px auto;
+  gap: 25px;
+  font-family: "Poppins", sans-serif;
+}
+
+/* ===================== TABLE CONTAINER ===================== */
+.requirements-table-container {
+  width: 90%;
+  max-width: 850px;
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  text-align: left;
+  transition: transform 0.2s ease-in-out;
+}
+
+.requirements-table-container:hover {
+  transform: scale(1.01);
+}
+
+.requirements-table-container h3 {
+  text-align: center;
+  color: #1e3a8a;
+  margin-bottom: 20px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* ===================== TABLE ===================== */
+.requirements-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  color: #334155;
+}
+
+.requirements-table th,
+.requirements-table td {
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  vertical-align: top;
+}
+
+.requirements-table th {
+  background-color: #3b82f6;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.requirements-table tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+.requirements-table tr:hover {
+  background-color: #eff6ff;
+}
+
+/* Items Row */
+.item-row td {
+  background-color: #f8fafc;
+}
+
+/* Price Row */
+.price-row td {
+  background-color: #f1f5f9;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Grand Total Row */
+.grand-total-row td {
+  background-color: #dbeafe;
+  font-weight: 700;
+  color: #1e40af;
+  border-top: 2px solid #3b82f6;
+}
+
+/* Inline Items Styling */
+.inline-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.item-chip {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border-radius: 16px;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ===================== FORM ===================== */
+.user-form {
+  width: 90%;
+  max-width: 850px;
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.user-form h3 {
+  text-align: center;
+  color: #1e3a8a;
+  margin-bottom: 25px;
+  font-weight: 700;
+}
+
+.user-form label {
+  display: block;
+  margin-top: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.user-form input,
+.user-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.user-form input:focus,
+.user-form textarea:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.user-form button {
+  width: 100%;
+  margin-top: 22px;
+  padding: 12px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.1s;
+}
+
+.user-form button:hover {
+  background-color: #2563eb;
+  transform: scale(1.02);
+}
+
+.status-message {
+  text-align: center;
+  color: #16a34a;
+  font-weight: 500;
+  margin-top: 12px;
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 700px) {
+  .requirements-table-container,
+  .user-form {
+    width: 95%;
+    padding: 18px;
+  }
+
+  .requirements-table th,
+  .requirements-table td {
+    font-size: 13px;
+    padding: 10px;
+  }
+
+  .item-chip {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+}
+
+
+
+
+.user-form {
+  max-width: 500px;
+  margin: 30px auto;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-form h3 {
+  text-align: center;
+  color: #1e40af;
+  margin-bottom: 20px;
+}
+
+.user-form label {
+  display: block;
+  margin: 10px 0 5px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.user-form input,
+.user-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.user-form input:focus,
+.user-form textarea:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+.user-form button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px;
+  background-color: #3b82f6;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.user-form button:hover {
+  background-color: #2563eb;
+}
+
+/* ----------- Status Message ----------- */
+.status-message {
+  text-align: center;
+  margin-top: 10px;
+  font-weight: 500;
+  color: #1e40af;
+}
+
+/* ----------- Mobile Responsiveness ----------- */
+@media (max-width: 600px) {
+  .user-form {
+    width: 90%;
+    padding: 15px;
+  }
+
+  .user-form input,
+  .user-form textarea {
+    font-size: 13px;
+  }
+
+  .user-form button {
+    font-size: 14px;
+    padding: 10px;
+  }
+}
+.grand-total-row {
+  background-color: #f8f9fa;
+  border-top: 2px solid #333;
+}
+.grand-total-row td {
+  padding: 10px;
+  width:280px;
+}

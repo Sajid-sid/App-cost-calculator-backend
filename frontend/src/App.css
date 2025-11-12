@@ -1,0 +1,348 @@
+/* --- Container --- */
+body {
+  margin-bottom: 0px;
+}
+/* --- Heading --- */
+.heading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 2rem;
+  color: #fff;
+  background-color: #4770DB;
+  padding: 50px 20px 30px; /* top right left */
+  margin: 0;
+  z-index: 1000;
+  overflow: hidden;
+
+  /* Mask Reveal effect */
+  display: inline-block;
+  white-space: nowrap;
+  clip-path: inset(0 100% 0 0);
+  animation: revealText 3s forwards;
+}
+
+@keyframes revealText {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+/* --- Responsive --- */
+@media (max-width: 1024px) {
+  .heading {
+    font-size: 1.8rem;
+    padding: 40px 15px 25px;
+  }
+}
+
+@media (max-width: 768px) {
+  .heading {
+    font-size: 1.5rem;
+    padding: 35px 10px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .heading {
+    font-size: 1.2rem;
+    padding: 25px 10px 15px;
+  }
+}
+
+
+/* Keyframes for reveal */
+@keyframes revealText {
+  from {
+    clip-path: inset(0 100% 0 0); /* fully hidden */
+  }
+  to {
+    clip-path: inset(0 0 0 0); /* fully revealed */
+  }
+}
+
+.title
+{
+  text-align: center;
+  margin-top: 120px;
+  margin-right: 15rem;
+  margin-left: 20px;
+  /* margin-left: 30%;
+  margin-right: 50%; */
+}
+.sub
+{
+  text-align: center;
+  margin-top: 10px;
+   margin-right: 15rem;
+}
+.screen
+{
+  width:1500px;
+  height: 100px;
+}
+
+/* --- Section Layout --- */
+.section {
+  margin-bottom: 40px;
+}
+
+
+.platform-list {
+  display: grid;
+  grid-template-columns: repeat(3, max-content); /* instead of 1fr */
+  gap: 100px;
+  margin-left: 30rem;
+  margin-bottom: 30px;
+  width:90%;
+    
+}
+.platform-section
+{
+  width:70%;
+  
+}
+/* .users-list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 20px;
+  justify-items: center;
+  margin-top: 20px;
+} */
+ 
+.user {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;       /* allow items to wrap on smaller screens */
+  gap: 40px;             /* smaller gap for smaller screens */
+  justify-content: center; /* center items horizontally */
+  margin: 20px 0;        /* remove fixed margin-left */
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 1024px) {
+  .user {
+    gap: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .user {
+    gap: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .user {
+    gap: 15px;
+  }
+}
+
+
+
+.platform-card {
+  position: relative;       
+  cursor: pointer;
+  text-align: center;
+  width: 150px;             
+  height: 150px;           
+  border-radius: 20px;       
+  border: 2px solid #ddd;
+  background-color: #fff;
+  display: flex;
+  margin-left: 5px;
+   margin-right: 20px;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  flex-direction: column;
+}
+
+.platform-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  border-color: #4770DB;
+}
+
+.platform-card.selected {
+  border-color:#4770DB;
+  box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+}
+
+/* --- Platform Images --- */
+.platform-card img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+/* --- Platform Tick Mark --- */
+.tick-mark {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  background-color:#fbce17;
+  color: white;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+
+
+/* --- Global fix --- */
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+
+/* --- Title & Subtitle --- */
+.title{
+  text-align: center;
+  margin-top: 120px;
+  margin-right: 0;          /* ✅ remove right offset */
+}
+.sub{
+   text-align: center;
+  margin-top: 10px;
+  margin-right: 0; 
+}
+
+/* --- Screen section --- */
+.screen {
+  width: 100%;              /* ✅ fits screen */
+  max-width: 1200px;
+  height: 100px;
+  margin: 0 auto;
+}
+
+/* --- Platform list --- */
+.platform-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* ✅ responsive grid */
+  gap: 60px;
+  justify-items: center;    /* ✅ centers each item */
+  margin: 30px auto;
+  width: 100%;
+  max-width: 1000px;
+}
+
+
+/* --- Sidebar --- */
+
+/* components/RequirementsTable.css */
+/* components/RequirementsTable.css */
+/* components/RequirementsTable.css */
+
+/* Estimation section styles */
+.estimation-section {
+  margin-top: 40px; /* Large gap between table and estimation */
+  padding-top: 30px;
+  border-top: 2px solid #e9ecef;
+  text-align: center;
+}
+
+.estimation-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+.total-cost {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #e74c3c;
+  margin-top: 10px;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .requirements-table-container {
+    width: 20%;
+  }
+}
+
+@media (max-width: 768px) {
+  .requirements-table-container {
+    width: 70%;
+    padding: 10px;
+    margin: 20px auto;
+  }
+  
+  .requirements-table {
+    font-size: 14px;
+    margin-bottom: 25px;
+  }
+  
+  .requirements-table th,
+  .requirements-table td {
+    padding: 10px 12px;
+  }
+  
+  .requirement-header {
+    width: 40%;
+  }
+  
+  .specifications-header {
+    width: 60%;
+  }
+  
+  .estimation-section {
+    margin-top: 30px;
+    padding-top: 20px;
+  }
+  
+  .total-cost {
+    font-size: 1.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .requirements-table-container {
+    width: 50%;
+    margin-left:0px;
+    margin-right:30px;;
+  }
+  
+  .requirements-title {
+    font-size: 1.3rem;
+  }
+  
+  .requirements-table th,
+  .requirements-table td {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  
+  .estimation-section {
+    margin-top: 25px;
+    padding-top: 15px;
+  }
+  
+  .estimation-title {
+    font-size: 1.1rem;
+  }
+  
+  .total-cost {
+    font-size: 1.5rem;
+  }
+}
+/* --- Ensure full-page height layout --- */
+html, body {
+  height: 100%;              /* ✅ ensures the body fills the screen */
+}
+

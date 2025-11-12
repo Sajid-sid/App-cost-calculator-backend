@@ -1,0 +1,76 @@
+/* Sidebar default styles */
+.sidebar {
+  position: fixed;
+  top: 20%;
+  right: 40px;
+  background: #4770DB;
+  border-radius: 12px;
+  padding: 20px;
+  color: white;
+  width: 300px;
+  max-width: 90vw;
+  overflow-y: auto;
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+/* Sidebar toggle button for mobile */
+.sidebar-toggle {
+  display: none; /* hidden on desktop */
+  position: fixed;
+  top: 90px;
+  right: 20px;
+  background: #4770DB;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  font-size: 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 1100;
+}
+@media (max-width: 1024px) {
+  .sidebar {
+    top: 15%;
+    right: 20px;
+    width: 260px;
+  }
+}
+
+/* Hide sidebar off-canvas on mobile by default */
+@media (max-width: 768px) {
+  .sidebar {
+    right: -100%; /* hide sidebar */
+    top: 0;
+    height: 100vh;
+    width: 250px;
+    padding: 20px;
+  }
+
+  .sidebar.open {
+    right: 0; /* slide in */
+  }
+
+  .sidebar-toggle {
+    display: block; /* show toggle button */
+  }
+}
+
+/* Scrollbar */
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.4);
+  border-radius: 4px;
+}
+
+.sidebar ul {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin-bottom: 10px;
+}
