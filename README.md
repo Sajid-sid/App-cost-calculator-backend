@@ -80,7 +80,7 @@ npm install
 EMAIL_HOST=smtp.hostinger.com
 EMAIL_PORT=465
 EMAIL_USER=info@aspireths.com
-EMAIL_PASS=your_password_here
+EMAIL_PASS=XXXXXXXX
 PORT=5000
 ```
 
