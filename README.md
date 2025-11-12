@@ -162,8 +162,7 @@ This project is licensed under the **MIT License**.
 ---
 
 ## ✨ Author
-
-**Akhila Thada**  
+ 
 💼 Aspire TekHub Solutions  
 📧 [info@aspireths.com](mailto:info@aspireths.com)  
 🌐 [www.aspireths.com](https://www.aspireths.com)
