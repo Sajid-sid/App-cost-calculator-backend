@@ -9,6 +9,8 @@ import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import multer from "multer";
 import fs from "fs";
+import mammoth from "mammoth";
+import PDFDocument from "pdfkit";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -22,13 +24,36 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // -----------------------------------------
+// Single Multer Setup (PDF + DOCX)
+// -----------------------------------------
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const folder = path.join(__dirname, "uploads");
+    if (!fs.existsSync(folder)) fs.mkdirSync(folder);
+    cb(null, folder);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+
+const upload = multer({
+  storage,
+  fileFilter(req, file, cb) {
+    const allowedTypes = [
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/msword",
+    ];
+    if (allowedTypes.includes(file.mimetype)) cb(null, true);
+    else cb(new Error("Only PDF or DOCX allowed"));
+  },
+});
+
+// -----------------------------------------
 // Middleware
 // -----------------------------------------
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(cors({ origin: "*", methods: ["GET", "POST"], allowedHeaders: ["Content-Type", "Authorization"] }));
 app.use(express.json());
 
 // -----------------------------------------
@@ -47,35 +72,6 @@ db.connect((err) => {
 });
 
 // -----------------------------------------
-// File Upload (PDF)
-// -----------------------------------------
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const folder = path.join(__dirname, "uploads");
-    if (!fs.existsSync(folder)) fs.mkdirSync(folder);
-    cb(null, folder);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-const upload = multer({
-  storage,
-  fileFilter(req, file, cb) {
-    if (file.mimetype === "application/pdf") cb(null, true);
-    else cb(new Error("Only PDF allowed"), false);
-  },
-});
-
-// -----------------------------------------
-// Test Route
-// -----------------------------------------
-app.get("/", (req, res) => {
-  res.send("🚀 Backend Running Successfully");
-});
-
-// -----------------------------------------
 // Nodemailer transporter
 // -----------------------------------------
 const transporter = nodemailer.createTransport({
@@ -88,20 +84,54 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// =====================================================================
-// 1️⃣ WEBSITE EMAIL → SAVE + SEND
-// =====================================================================
-app.post("/send-email", upload.single("pdf"), (req, res) => {
+// -----------------------------------------
+// Test Route
+// -----------------------------------------
+app.get("/", (req, res) => res.send("🚀 Backend Running Successfully"));
+
+// -----------------------------------------
+// DOCX → PDF Conversion
+// -----------------------------------------
+app.post("/convertFile", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+    const inputPath = req.file.path;
+    const outputPath = path.join(
+      __dirname,
+      "files",
+      req.file.originalname.replace(/\.[^/.]+$/, "") + ".pdf"
+    );
+
+    const { value: text } = await mammoth.extractRawText({ path: inputPath });
+
+    const doc = new PDFDocument({ size: "A4", margin: 20 });
+    const writeStream = fs.createWriteStream(outputPath);
+    doc.pipe(writeStream);
+
+    doc.font("Times-Roman").fontSize(14);
+    doc.text(text, { lineGap: 8 }); // spacing
+    doc.end();
+
+    writeStream.on("finish", () => res.download(outputPath));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error converting file" });
+  }
+});
+
+// -----------------------------------------
+// WEBSITE EMAIL → SAVE + SEND
+// -----------------------------------------
+app.post("/send-email", upload.single("file"), async (req, res) => {
   const { name, email, phone, message, tableDetails, grandTotal } = req.body;
   const pdfFile = req.file;
 
-  if (!name || !email || !phone || !pdfFile) {
-    return res.status(400).json({ message: "Name, Email, Phone, PDF required" });
-  }
+  if (!name || !email || !phone || !pdfFile)
+    return res.status(400).json({ message: "Name, Email, Phone, and PDF/DOCX required" });
 
   const totalAmount = parseFloat(grandTotal) || 0;
-
-  // Save to 'quotations' table
+//save the website qotation details
   db.query(
     `INSERT INTO quotations 
      (customer_name, customer_email, customer_phone, message, table_details, grand_total)
@@ -133,17 +163,16 @@ app.post("/send-email", upload.single("pdf"), (req, res) => {
 
         // Email to Client
         await transporter.sendMail({
-          from: `"Aspire TekHub" <${process.env.EMAIL_USER}>`,
+          from: `"Aspire TekHub solutions" <${process.env.EMAIL_USER}>`,
           to: email,
           subject: `Your Website Quotation - ${name}`,
-          text: `Hello ${name || "there"},\n\nThank you for using Aspire TekHub's Website Cost Calculator. Your quotation is attached.\n\nRegards,\nAspire TekHub Solutions`,
+          text: `Hello ${name || "there"},\n\nThank you for using Aspire TekHub's Website Cost Calculator. Your quotation is attached.\n\nRegards,\nAspire TekHub solutions`,
           attachments: [{ filename: pdfFile.originalname, path: pdfFile.path }],
         });
 
-        // Delete uploaded file
         fs.unlinkSync(pdfFile.path);
 
-        res.json({ message: "Website quotation saved + emails sent to admin and client!" });
+        res.json({ message: "Website quotation saved + emails sent!" });
       } catch (emailError) {
         console.error("❌ Email Error:", emailError);
         res.status(500).json({ message: "Email sending failed", error: emailError.message });
@@ -152,40 +181,21 @@ app.post("/send-email", upload.single("pdf"), (req, res) => {
   );
 });
 
-
-// =====================================================================
-// 2️⃣ FETCH WEBSITE QUOTATIONS
-// =====================================================================
-app.get("/api/quotations", (req, res) => {
-  db.query("SELECT * FROM quotations ORDER BY id DESC", (err, rows) => {
-    if (err) return res.status(500).json({ message: "Fetch Error", error: err.message });
-    res.json(rows);
-  });
-});
-
-// App Quotations
-app.get("/api/app-quotations", (req, res) => {
-  db.query("SELECT * FROM app_cost_requests ORDER BY id DESC", (err, rows) => {
-    if (err) return res.status(500).json({ message: "Fetch Error", error: err.message });
-    res.json(rows);
-  });
-});
-// =====================================================================
-// 3️⃣ APP EMAIL → SAVE + SEND
-// =====================================================================
-app.post("/send-app-email", upload.single("pdf"), (req, res) => {
+// -----------------------------------------
+// APP EMAIL → SAVE + SEND
+// -----------------------------------------
+app.post("/send-app-email", upload.single("file"), async (req, res) => {
   const { name, email, phone, message, tableDetails, grandTotal } = req.body;
   const pdfFile = req.file;
 
-  if (!name || !email || !phone || !pdfFile) {
+  if (!name || !email || !phone || !pdfFile)
     return res.status(400).json({ message: "Missing fields" });
-  }
 
   const totalAmount = parseFloat(grandTotal) || 0;
-
-  // Save to App Table
+//save the app_cost_calculator quotation details
   db.query(
-    `INSERT INTO app_cost_requests (customer_name, customer_email, customer_phone, message, table_details, grand_total)
+    `INSERT INTO app_cost_requests 
+      (customer_name, customer_email, customer_phone, message, table_details, grand_total)
      VALUES (?, ?, ?, ?, ?, ?)`,
     [name, email, phone, message || "", tableDetails || "", totalAmount],
     async (err, result) => {
@@ -197,7 +207,7 @@ app.post("/send-app-email", upload.single("pdf"), (req, res) => {
       try {
         // Email to Admin
         await transporter.sendMail({
-          from: `"Aspire TekHub" <${process.env.EMAIL_USER}>`,
+          from: `"Aspire TekHub solutions" <${process.env.EMAIL_USER}>`,
           to: "info@aspireths.com",
           subject: `New App Quotation from ${name}`,
           html: `
@@ -214,16 +224,16 @@ app.post("/send-app-email", upload.single("pdf"), (req, res) => {
 
         // Email to Client
         await transporter.sendMail({
-          from: `"Aspire TekHub" <${process.env.EMAIL_USER}>`,
+          from: `"Aspire TekHub solutions" <${process.env.EMAIL_USER}>`,
           to: email,
           subject: `Your App Quotation - ${name}`,
-          text: `Hello ${name || "there"},\n\nThank you for using Aspire TekHub's App Cost Calculator. Your quotation is attached.\n\nRegards,\nAspire TekHub Solutions`,
+          text: `Hello ${name || "there"},\n\nThank you for using Aspire TekHub's App Cost Calculator. Your quotation is attached.\n\nRegards,\nAspire TekHub solutions`,
           attachments: [{ filename: pdfFile.originalname, path: pdfFile.path }],
         });
 
         fs.unlinkSync(pdfFile.path);
 
-        res.json({ message: "App quotation saved + emails sent to admin and client!" });
+        res.json({ message: "App quotation saved + emails sent!" });
       } catch (emailError) {
         console.error("❌ Email Error:", emailError);
         res.status(500).json({ message: "Email sending failed", error: emailError.message });
@@ -232,89 +242,34 @@ app.post("/send-app-email", upload.single("pdf"), (req, res) => {
   );
 });
 
-// =====================================================================
-// 4️⃣ FETCH APP QUOTATIONS
-// =====================================================================
-// app.get("/api/quotations", (req, res) => {
-//   db.query("SELECT * FROM quotations ORDER BY id DESC", (err, rows) => {
-//     if (err) return res.status(500).json({ message: "Fetch Error", error: err.message });
-//     res.json(rows);
-//   });
-// });
-// app.get("/api/app-quotations", (req, res) => {
-//   db.query("SELECT * FROM app_cost_requests ORDER BY id DESC", (err, rows) => {
-//     if (err) return res.status(500).json({ message: "Fetch Error", error: err.message });
-//     res.json(rows);
-//   });
-// });
-app.post("/send-app-email", upload.single("pdf"), async (req, res) => {
-  const { name, email, phone, message, tableDetails, grandTotal } = req.body;
-  const pdfFile = req.file;
-
-  // Validate fields
-  if (!name || !email || !phone || !pdfFile) {
-    return res.status(400).json({ message: "Missing required fields" });
-  }
-
-  const totalAmount = parseFloat(grandTotal) || 0;
-
-  // Save to MySQL
-  db.query(
-    `INSERT INTO app_cost_requests 
-      (customer_name, customer_email, customer_phone, message, table_details, grand_total, pdf) 
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [
-      name,
-      email,
-      phone,
-      message || "",
-      tableDetails || "",
-      totalAmount,
-      pdfFile.buffer, // <-- Save PDF as BLOB
-    ],
-    async (err, result) => {
-      if (err) {
-        console.error("❌ DB Insert Error:", err);
-        return res.status(500).json({ message: "DB Insert Error", error: err });
-      }
-
-      // ==== EMAIL SEND ====
-      try {
-        await transporter.sendMail({
-          from: process.env.EMAIL_USER,
-          to: email,
-          subject: "Your App Development Cost Estimate",
-          html: `
-            <h2>Hi ${name},</h2>
-            <p>Thank you for using our App Cost Calculator.</p>
-            <p><strong>Total Estimate: ₹${totalAmount}</strong></p>
-            <p>Please find your detailed PDF attached.</p>
-          `,
-          attachments: [
-            {
-              filename: "App-Quotation.pdf",
-              content: pdfFile.buffer,
-            },
-          ],
-        });
-
-        res.json({
-          message: "Email sent successfully!",
-          id: result.insertId,
-        });
-      } catch (emailErr) {
-        console.error("❌ Email Error:", emailErr);
-        res.status(500).json({ message: "Email Send Error", error: emailErr });
-      }
-    }
-  );
+// -----------------------------------------
+// FETCH WEBSITE QUOTATIONS
+// -----------------------------------------
+app.get("/api/quotations", (req, res) => {
+  db.query("SELECT * FROM quotations ORDER BY id DESC", (err, rows) => {
+    if (err) return res.status(500).json({ message: "Fetch Error", error: err.message });
+    res.json(rows);
+  });
 });
 
-// =====================================================================
-// 5️⃣ LOGIN
-// =====================================================================
+// -----------------------------------------
+// FETCH APP QUOTATIONS
+// -----------------------------------------
+app.get("/api/app-quotations", (req, res) => {
+  db.query("SELECT * FROM app_cost_requests ORDER BY id DESC", (err, rows) => {
+    if (err) return res.status(500).json({ message: "Fetch Error", error: err.message });
+    res.json(rows);
+  });
+});
+
+// -----------------------------------------
+// LOGIN
+// -----------------------------------------
 app.post("/api/login", (req, res) => {
   const { username, password } = req.body;
+  if (!username || !password)
+    return res.status(400).json({ message: "Username and password are required" });
+  //save login details in database
 
   db.query(
     `SELECT * FROM quotationadmin WHERE username = ? AND password = ?`,
@@ -323,7 +278,7 @@ app.post("/api/login", (req, res) => {
       if (err) return res.status(500).json({ message: "DB Error", error: err.message });
       if (rows.length === 0) return res.status(401).json({ message: "Invalid Credentials" });
 
-      const token = jwt.sign({ id: rows[0].id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+      const token = jwt.sign({ id: rows[0].id }, process.env.JWT_SECRET || "defaultsecret", { expiresIn: "1d" });
       res.json({ message: "Login Successful", token });
     }
   );
