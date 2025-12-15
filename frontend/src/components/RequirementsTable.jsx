@@ -129,7 +129,7 @@ const RequirementsTable = ({
     formDataToSend.append("tableDetails", JSON.stringify(tableDetails)); // ✅ send table details
     formDataToSend.append("grandTotal", grandTotal); // ✅ send grand total
 
-    const res = await fetch("https://app.aspireths.com/send-pdf", {
+    const res = await fetch("https://app.aspireths.com/send-app-email", {
       method: "POST",
       body: formDataToSend,
     });
