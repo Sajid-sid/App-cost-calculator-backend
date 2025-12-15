@@ -1,24 +1,21 @@
-import React, { useRef, useState, useMemo } from "react";
+import React, { useRef, useState } from "react";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import "./RequirementsTable.css";
 
 const RequirementsTable = ({
-  selectedPlatforms = [],
-  selectedSizes = [],
-  selectedUis = [],
-  selectedUsers = [],
-  selectedGenerators = [],
-  selectedDates = [],
-  selectedEngagement = [],
-  selectedBilling = [],
-  selectedAdmins = [],
-  selectedApis = [],
-  selectedSecurity = [],
+  selectedPlatforms,
+  selectedSizes,
+  selectedUis,
+  selectedUsers,
+  selectedGenerators,
+  selectedDates,
+  selectedEngagement,
+  selectedBilling,
+  selectedAdmins,
+  selectedApis,
+  selectedSecurity,
 }) => {
-  const tableRef = useRef(null);
-
-  // -------------------- STATE --------------------
+  const tableRef = useRef();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -27,234 +24,278 @@ const RequirementsTable = ({
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
 
-  // -------------------- HELPERS --------------------
-  const getTotalPrice = (items = []) =>
-    items.reduce((sum, item) => sum + (item?.price || 0), 0);
+  const getTotalPrice = (array) => {
+    if (!array || array.length === 0) return 0;
+    return array.reduce((acc, item) => acc + item.price, 0);
+  };
 
-  const requirements = useMemo(
-    () => [
-      { id: 1, name: "Platform", items: selectedPlatforms },
-      { id: 2, name: "Size", items: selectedSizes },
-      { id: 3, name: "User Interface", items: selectedUis },
-      { id: 4, name: "Social Login", items: selectedUsers },
-      { id: 5, name: "User Content", items: selectedGenerators },
-      { id: 6, name: "Locations", items: selectedDates },
-      { id: 7, name: "Engagement", items: selectedEngagement },
-      { id: 8, name: "Billing", items: selectedBilling },
-      { id: 9, name: "Feedback", items: selectedAdmins },
-      { id: 10, name: "External API", items: selectedApis },
-      { id: 11, name: "Security", items: selectedSecurity },
-    ],
-    [
-      selectedPlatforms,
-      selectedSizes,
-      selectedUis,
-      selectedUsers,
-      selectedGenerators,
-      selectedDates,
-      selectedEngagement,
-      selectedBilling,
-      selectedAdmins,
-      selectedApis,
-      selectedSecurity,
-    ]
-  );
+    const formatTableDetails = () => {
+  return requirements
+    .map(req => `${req.name}: ${req.items.map(i => i.name).join(", ")}`)
+    .join("\n");
+};
 
-  const grandTotal = useMemo(
-    () => requirements.reduce((sum, r) => sum + getTotalPrice(r.items), 0),
-    [requirements]
-  );
+  const requirements = [
+    { id: 1, name: "Platform", items: selectedPlatforms },
+    { id: 2, name: "Size", items: selectedSizes },
+    { id: 3, name: "User Interface", items: selectedUis },
+    { id: 4, name: "Social Login", items: selectedUsers },
+    { id: 5, name: "User Content", items: selectedGenerators },
+    { id: 6, name: "Locations", items: selectedDates },
+    { id: 7, name: "Engagement", items: selectedEngagement },
+    { id: 8, name: "Billing", items: selectedBilling },
+    { id: 9, name: "Feedback", items: selectedAdmins },
+    { id: 10, name: "External API", items: selectedApis },
+    { id: 11, name: "Security", items: selectedSecurity },
+  ];
 
-  // -------------------- FORM --------------------
   const handleInputChange = (e) => {
-    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
-    setErrors((p) => ({ ...p, [e.target.name]: "" }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: "" });
   };
 
   const validateForm = () => {
-    const { name, email, phone } = formData;
     const newErrors = {};
-
-    if (!/^[A-Za-z\s]+$/.test(name)) newErrors.name = "Enter a valid name";
-    if (!/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(email))
-      newErrors.email = "Enter a valid email";
-    if (!/^\d{10}$/.test(phone))
-      newErrors.phone = "Enter a 10-digit phone number";
-
+    const { name, email, phone } = formData;
+    if (!name.trim()) newErrors.name = "Name is required.";
+    if (!email.trim()) newErrors.email = "Email is required.";
+    if (!phone.trim()) newErrors.phone = "Phone number is required.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // -------------------- PDF --------------------
-  const addHeader = async (pdf) => {
-    const logo = new Image();
-    logo.src = "/AspireLogo.png";
-    await new Promise((res) => (logo.onload = res));
+  const addStyledHeader = (pdf) => {
+    return new Promise((resolve) => {
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const headerHeight = 60;
+      const logo = new Image();
+      logo.src = "/AspireLogo.png";
+      logo.onload = () => {
+        pdf.setFillColor(0, 74, 173);
+        pdf.rect(0, 0, pageWidth, headerHeight, "F");
+        pdf.addImage(logo, "PNG", 20, 10, 40, 40);
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(20);
+        pdf.text("ASPIRE TEKHUB SOLUTIONS", pageWidth / 2, 30, { align: "center" });
+        pdf.setFontSize(12);
+        pdf.text(new Date().toLocaleDateString(), pageWidth - 70, 30);
+        resolve();
+      };
+    });
+  };
 
-    const w = pdf.internal.pageSize.getWidth();
-    pdf.setFillColor(59, 130, 246);
-    pdf.rect(0, 0, w, 70, "F");
-    pdf.addImage(logo, "PNG", 40, 10, 40, 40);
+  const addStyledFooter = (pdf) => {
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const footerHeight = 60;
+    pdf.setFillColor(0, 74, 173);
+    pdf.rect(0, pageHeight - footerHeight, pageWidth, footerHeight, "F");
+    pdf.setTextColor(255, 255, 255);
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(16);
-    pdf.setTextColor(255);
-    pdf.text("ASPIRE TEKHUB SOLUTIONS", 90, 35);
-    pdf.setFontSize(10);
-    pdf.text(`Date: ${new Date().toLocaleDateString()}`, w - 120, 35);
-    pdf.setTextColor(0);
-  };
-
-  const addFooter = (pdf, y) => {
-    const w = pdf.internal.pageSize.getWidth();
-    const h = pdf.internal.pageSize.getHeight();
-    const footerY = Math.min(h - 60, y + 20);
-
-    pdf.setFillColor(59, 130, 246);
-    pdf.rect(0, footerY, w, 60, "F");
-    pdf.setTextColor(255);
-    pdf.setFontSize(10);
+    pdf.setFontSize(12);
     pdf.text(
-      "Corporate Office: 1-8-303, 3rd Floor, VK Towers, SP Road, Secunderabad - 500003",
-      w / 2,
-      footerY + 25,
+      "Corporate Office: 1-8-303, 3rd Floor, VK Towers, SP Road, Rasoolpura, Secunderabad - 500003",
+      pageWidth / 2,
+      pageHeight - 35,
       { align: "center" }
     );
     pdf.text(
-      "040 4519 5642 | info@aspireths.com | www.aspireths.com",
-      w / 2,
-      footerY + 42,
+      "040 4519 5642  |  info@aspireths.com  |  www.aspireths.com",
+      pageWidth / 2,
+      pageHeight - 15,
       { align: "center" }
     );
   };
 
-  // -------------------- SUBMIT --------------------
+  const generateStyledPdf = async () => {
+    const pdf = new jsPDF("p", "pt", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    await addStyledHeader(pdf);
+
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(20);
+    pdf.setTextColor(0, 74, 173);
+    pdf.text("REQUIREMENTS SUMMARY", pageWidth / 2, 110, { align: "center" });
+
+    const startX = 40;
+    let rowY = 150;
+    const baseRowHeight = 25;
+
+    // Fixed column widths
+    const colWidths = {
+      category: 150,
+      items: 250,
+      price: 100,
+    };
+
+    // Table Header
+    pdf.setFillColor(0, 74, 173);
+    pdf.rect(startX, rowY, colWidths.category + colWidths.items + colWidths.price, baseRowHeight, "F");
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(12);
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Category", startX + 5, rowY + 17);
+    pdf.text("Selected Items", startX + colWidths.category + 5, rowY + 17);
+    pdf.text("Price (Rs.)", startX + colWidths.category + colWidths.items + 5, rowY + 17);
+    rowY += baseRowHeight;
+
+    pdf.setFont("helvetica", "normal");
+    pdf.setTextColor(0, 0, 0);
+
+    requirements.forEach((req) => {
+      const items = req.items && req.items.length > 0 ? req.items : [{ name: "None selected", price: 0 }];
+      const totalPrice = getTotalPrice(req.items);
+
+      const splitText = pdf.splitTextToSize(items.map((item) => item.name).join("\n"), colWidths.items - 10);
+      const cellHeight = baseRowHeight + (splitText.length - 1) * 14;
+      const middleY = rowY + cellHeight / 2 + 5;
+
+      // Category cell
+      pdf.rect(startX, rowY, colWidths.category, cellHeight);
+      pdf.text(req.name, startX + 5, rowY + 17);
+
+      // Selected Items cell
+      pdf.rect(startX + colWidths.category, rowY, colWidths.items, cellHeight);
+      pdf.text(splitText, startX + colWidths.category + 5, rowY + 17);
+
+      // Price cell (right-aligned)
+      pdf.rect(startX + colWidths.category + colWidths.items, rowY, colWidths.price, cellHeight);
+      const priceText = `Rs.${totalPrice.toLocaleString()}`;
+      const priceX = startX + colWidths.category + colWidths.items + colWidths.price - 5 - pdf.getTextWidth(priceText);
+      pdf.text(priceText, priceX, middleY);
+
+      rowY += cellHeight;
+
+      if (rowY + baseRowHeight > pageHeight - 100) {
+        addStyledFooter(pdf);
+        pdf.addPage();
+        rowY = 40;
+      }
+    });
+
+    // Grand Total
+    const gTotal = requirements.reduce((acc, req) => acc + getTotalPrice(req.items), 0);
+    pdf.setFont("helvetica", "bold");
+    pdf.setTextColor(0, 74, 173);
+    pdf.rect(startX, rowY, colWidths.category + colWidths.items + colWidths.price, baseRowHeight);
+    pdf.text("Grand Total", startX + 5, rowY + 17);
+    const gTotalText = `Rs.${gTotal.toLocaleString()}`;
+    const gTotalX = startX + colWidths.category + colWidths.items + colWidths.price - 5 - pdf.getTextWidth(gTotalText);
+    pdf.text(gTotalText, gTotalX, rowY + 17);
+
+    rowY += baseRowHeight + 50;
+    addStyledFooter(pdf);
+
+    return pdf.output("blob");
+  };
+
   const handleSendPdf = async () => {
     if (!validateForm()) {
-      setStatusMessage("⚠️ Please fix the errors above.");
+      alert("⚠️ Please fix the errors before submitting!");
       return;
     }
-
+    setLoading(true);
     try {
-      setLoading(true);
-      setStatusMessage("📤 Sending email...");
+      const pdfBlob = await generateStyledPdf();
+      const formDataToSend = new FormData();
+      formDataToSend.append("email", formData.email);
+      formDataToSend.append("pdf", pdfBlob, "requirements-summary.pdf");
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("phone", formData.phone);
+      formDataToSend.append("message", formData.message);
+       formDataToSend.append("grandTotal", grandTotal);
 
-      const canvas = await html2canvas(tableRef.current, { scale: 3 });
-      const imgData = canvas.toDataURL("image/png");
+    formDataToSend.append("tableDetails", formatTableDetails());
 
-      const pdf = new jsPDF("p", "pt", "a4");
-      await addHeader(pdf);
+      console.log(formDataToSend);
 
-      pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(16);
-      pdf.text(
-        "REQUIREMENTS SUMMARY",
-        pdf.internal.pageSize.getWidth() / 2,
-        110,
-        { align: "center" }
-      );
-
-      const pdfWidth = pdf.internal.pageSize.getWidth() - 60;
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      pdf.addImage(imgData, "PNG", 30, 130, pdfWidth, pdfHeight);
-      addFooter(pdf, 130 + pdfHeight);
-
-      const pdfBlob = pdf.output("blob");
-
-      const payload = new FormData();
-      payload.append("name", formData.name);
-      payload.append("email", formData.email);
-      payload.append("phone", formData.phone);
-      payload.append("message", formData.message);
-      payload.append("file", pdfBlob, "requirements-summary.pdf");
-      payload.append(
-        "tableDetails",
-        JSON.stringify(
-          requirements.map((r) => ({
-            name: r.name,
-            selected: r.items.map((i) => ({
-              name: i.name,
-              price: i.price,
-            })),
-            totalPrice: getTotalPrice(r.items),
-          }))
-        )
-      );
-      payload.append("grandTotal", grandTotal);
-
-      const res = await fetch(
-        "https://app.aspireths.com/send-app-email",
-        { method: "POST", body: payload }
-      );
-      const data = await res.json();
-
-      setStatusMessage(
-        res.ok
-          ? "✅ Email sent successfully!"
-          : `❌ Failed to send email: ${data.message || "Error"}`
-      );
+      const res = await fetch("https://app.aspireths.com/send-app-email", {
+        method: "POST",
+        body: formDataToSend,
+      });
+      if (res.ok) alert("✅ Email sent successfully!");
+      else alert("❌ Failed to send email.");
     } catch (err) {
-      console.error(err);
-      setStatusMessage("❌ Error generating or sending PDF.");
-    } finally {
-      setLoading(false);
+      alert("❌ Error generating or sending PDF.");
     }
+    setLoading(false);
   };
 
-  // -------------------- UI --------------------
   return (
     <div className="requirements-container">
       <div className="requirements-table" ref={tableRef}>
         <table>
           <thead>
             <tr>
-              <th>Requirement</th>
-              <th>Selected</th>
-              <th>Total</th>
+              <th>Requirement Questions</th>
+              <th>Selected Specifications</th>
+              <th>Total Price</th>
             </tr>
           </thead>
           <tbody>
-            {requirements.map((r) => (
-              <tr key={r.id}>
-                <td>{r.name}</td>
+            {requirements.map((req) => (
+              <tr key={req.id}>
+                <td>{req.name}</td>
                 <td>
-                  {r.items.length
-                    ? r.items.map((i) => i.name).join(", ")
-                    : "None"}
+                  {req.items && req.items.length > 0
+                    ? req.items.map((item) => item.name).join(", ")
+                    : "None selected"}
                 </td>
-                <td>₹{getTotalPrice(r.items)}</td>
+                <td>{getTotalPrice(req.items)}</td>
               </tr>
             ))}
             <tr className="grand-total-row">
-              <td colSpan={2} align="right">
-                Grand Total
+              <td colSpan="2" style={{ textAlign: "right", fontWeight: "bold" }}>
+                Grand Total:
               </td>
-              <td>₹{grandTotal}</td>
+              <td style={{ fontWeight: "bold" }}>
+                ₹{requirements.reduce((acc, req) => acc + getTotalPrice(req.items), 0)}
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <form className="user-form" noValidate>
-        <h3>Where should we send the estimate?</h3>
+        <h3>Where should we send the detailed estimate?</h3>
+        <label>Your Name</label>
+        <input
+          type="text"
+          name="name"
+          placeholder="Enter your name"
+          value={formData.name}
+          onChange={handleInputChange}
+        />
+        {errors.name && <p className="error-text">{errors.name}</p>}
 
-        {["name", "email", "phone"].map((f) => (
-          <div key={f}>
-            <input
-              name={f}
-              placeholder={`Your ${f}`}
-              value={formData[f]}
-              onChange={handleInputChange}
-            />
-            {errors[f] && <p className="error-text">{errors[f]}</p>}
-          </div>
-        ))}
+        <label>Your Email</label>
+        <input
+          type="email"
+          name="email"
+          placeholder="Enter your email"
+          value={formData.email}
+          onChange={handleInputChange}
+        />
+        {errors.email && <p className="error-text">{errors.email}</p>}
 
+        <label>Your Phone</label>
+        <input
+          type="tel"
+          name="phone"
+          placeholder="Enter your phone number"
+          value={formData.phone}
+          onChange={handleInputChange}
+        />
+        {errors.phone && <p className="error-text">{errors.phone}</p>}
+
+        <label>Your Message (optional)</label>
         <textarea
           name="message"
-          placeholder="Message (optional)"
+          placeholder="Write your message"
           value={formData.message}
           onChange={handleInputChange}
         />
@@ -262,8 +303,6 @@ const RequirementsTable = ({
         <button type="button" onClick={handleSendPdf} disabled={loading}>
           {loading ? "Sending..." : "Send PDF to Email"}
         </button>
-
-        {statusMessage && <p>{statusMessage}</p>}
       </form>
     </div>
   );
