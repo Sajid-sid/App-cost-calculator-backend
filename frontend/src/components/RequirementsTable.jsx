@@ -125,7 +125,7 @@ const RequirementsTable = ({
     formDataToSend.append("email", formData.email);
     formDataToSend.append("phone", formData.phone);
     formDataToSend.append("message", formData.message);
-    formDataToSend.append("pdf", pdfBlob, "requirements-summary.pdf");
+    formDataToSend.append("file", pdfBlob, "requirements-summary.pdf");
     formDataToSend.append("tableDetails", JSON.stringify(tableDetails)); // ✅ send table details
     formDataToSend.append("grandTotal", grandTotal); // ✅ send grand total
 
