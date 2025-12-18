@@ -90,8 +90,7 @@ app.post("/convertFile", upload.single("file"), (req, res) => {
   const baseName = path.basename(inputPath, path.extname(inputPath));
   const outputPdf = path.join(filesDir, `${baseName}.pdf`);
 
-  const libreOfficePath =
-    `"C:\\Program Files\\LibreOffice\\program\\soffice.exe"`;
+  const libreOfficePath = "soffice";
 
   const command = `${libreOfficePath} --headless --convert-to pdf --outdir "${filesDir}" "${inputPath}"`;
 
