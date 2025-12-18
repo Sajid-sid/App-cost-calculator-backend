@@ -153,7 +153,8 @@ app.post("/send-email", upload.single("file"), async (req, res) => {
           from: `"Aspire TekHub solutions" <${process.env.EMAIL_USER}>`,
           to: email,
           subject: `Your Website Quotation - ${name}`,
-          text: `Hello ${name || "there"},\n\nThank you for using Aspire TekHub's Website Cost Calculator. Your quotation is attached.\n\nRegards,\nAspire TekHub solutions`,
+           text: `Hello ${name || "there"},\nGreetings from Aspire! \n\nRegards,\nWeb Development Team\nAspire Tekhub solutions`,
+          attachments: [{ filename: pdfFile.originalname, path: pdfFile.path }],
           attachments: [{ filename: pdfFile.originalname, path: pdfFile.path }],
         });
 
@@ -214,7 +215,7 @@ app.post("/send-app-email", upload.single("file"), async (req, res) => {
           from: `"Aspire TekHub solutions" <${process.env.EMAIL_USER}>`,
           to: email,
           subject: `Your App Quotation - ${name}`,
-          text: `Hello ${name || "there"},\n\nThank you for using Aspire TekHub's App Cost Calculator. Your quotation is attached.\n\nRegards,\nAspire TekHub solutions`,
+         text: `Hello ${name || "there"},\nGreetings from Aspire! \n\nRegards,\nMobile App Development Team \nAspire Tekhub solutions`,
           attachments: [{ filename: pdfFile.originalname, path: pdfFile.path }],
         });
 
