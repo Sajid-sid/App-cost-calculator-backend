@@ -1,6 +1,3 @@
-// -----------------------------------------
-// Imports
-// -----------------------------------------
 import express from "express";
 import mysql from "mysql2";
 import cors from "cors";
@@ -9,9 +6,8 @@ import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import multer from "multer";
 import fs from "fs";
-import mammoth from "mammoth";
-import PDFDocument from "pdfkit";
 import path from "path";
+import { exec } from "child_process";
 import { fileURLToPath } from "url";
 
 dotenv.config();
@@ -24,30 +20,25 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // -----------------------------------------
-// Single Multer Setup (PDF + DOCX)
+// Ensure folders exist
+// -----------------------------------------
+const uploadDir = path.join(__dirname, "uploads");
+const filesDir = path.join(__dirname, "files");
+fs.mkdirSync(uploadDir, { recursive: true });
+fs.mkdirSync(filesDir, { recursive: true });
+
+// -----------------------------------------
+// Multer Setup (PDF + DOCX)
 // -----------------------------------------
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const folder = path.join(__dirname, "uploads");
-    if (!fs.existsSync(folder)) fs.mkdirSync(folder);
-    cb(null, folder);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
+  destination: uploadDir,
+  filename: (req, file, cb) =>
+    cb(null, Date.now() + "-" + file.originalname),
 });
 
 const upload = multer({
   storage,
-  fileFilter(req, file, cb) {
-    const allowedTypes = [
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "application/msword",
-    ];
-    if (allowedTypes.includes(file.mimetype)) cb(null, true);
-    else cb(new Error("Only PDF or DOCX allowed"));
-  },
+  limits: { fileSize: 20 * 1024 * 1024 },
 });
 
 // -----------------------------------------
@@ -92,32 +83,29 @@ app.get("/", (req, res) => res.send("🚀 Backend Running Successfully"));
 // -----------------------------------------
 // DOCX → PDF Conversion
 // -----------------------------------------
-app.post("/convertFile", upload.single("file"), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+app.post("/convertFile", upload.single("file"), (req, res) => {
+  if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-    const inputPath = req.file.path;
-    const outputPath = path.join(
-      __dirname,
-      "files",
-      req.file.originalname.replace(/\.[^/.]+$/, "") + ".pdf"
-    );
+  const inputPath = req.file.path;
+  const baseName = path.basename(inputPath, path.extname(inputPath));
+  const outputPdf = path.join(filesDir, `${baseName}.pdf`);
 
-    const { value: text } = await mammoth.extractRawText({ path: inputPath });
+  const libreOfficePath =
+    `"C:\\Program Files\\LibreOffice\\program\\soffice.exe"`;
 
-    const doc = new PDFDocument({ size: "A4", margin: 20 });
-    const writeStream = fs.createWriteStream(outputPath);
-    doc.pipe(writeStream);
+  const command = `${libreOfficePath} --headless --convert-to pdf --outdir "${filesDir}" "${inputPath}"`;
 
-    doc.font("Times-Roman").fontSize(14);
-    doc.text(text, { lineGap: 8 }); // spacing
-    doc.end();
+  exec(command, { maxBuffer: 1024 * 5000 }, (err) => {
+    if (err || !fs.existsSync(outputPdf)) {
+      console.error("❌ Conversion failed", err);
+      return res.status(500).json({ message: "PDF conversion failed" });
+    }
 
-    writeStream.on("finish", () => res.download(outputPath));
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error converting file" });
-  }
+    res.download(outputPdf, () => {
+      try { fs.unlinkSync(inputPath); } catch {}
+      try { fs.unlinkSync(outputPdf); } catch {}
+    });
+  });
 });
 
 // -----------------------------------------
