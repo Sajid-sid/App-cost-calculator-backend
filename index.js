@@ -47,6 +47,7 @@ const upload = multer({
 app.use(cors({ origin: ["https://frontend.app.aspireths.com", "http://localhost:5173"], methods: ["GET", "POST"], allowedHeaders: ["Content-Type", "Authorization"] }));
 app.use(express.json());
 
+
 // -----------------------------------------
 // MySQL Connection
 // -----------------------------------------
@@ -207,7 +208,10 @@ app.post("/send-app-email", upload.single("file"), async (req, res) => {
             <p><b>Message:</b> ${message || "No message"}</p>
             <pre>${tableDetails || ""}</pre>
           `,
-          attachments: [{ filename: pdfFile.originalname, path: pdfFile.path }],
+         attachments: [
+  { filename: pdfFile.originalname, path: pdfFile.path }
+],
+
         });
 
         // Email to Client
