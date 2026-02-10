@@ -192,38 +192,50 @@ const RequirementsTable = ({
 
     return pdf.output("blob");
   };
+  const grandTotal = requirements.reduce(
+  (acc, req) => acc + getTotalPrice(req.items),
+  0
+);
+
 
   const handleSendPdf = async () => {
-    if (!validateForm()) {
-      alert("⚠️ Please fix the errors before submitting!");
-      return;
-    }
-    setLoading(true);
-    try {
-      const pdfBlob = await generateStyledPdf();
-      const formDataToSend = new FormData();
-      formDataToSend.append("email", formData.email);
-      formDataToSend.append("pdf", pdfBlob, "requirements-summary.pdf");
-      formDataToSend.append("name", formData.name);
-      formDataToSend.append("phone", formData.phone);
-      formDataToSend.append("message", formData.message);
-       formDataToSend.append("grandTotal", grandTotal);
+  if (!validateForm()) {
+    alert("⚠️ Please fix the errors before submitting!");
+    return;
+  }
 
+  const grandTotal = requirements.reduce(
+    (acc, req) => acc + getTotalPrice(req.items),
+    0
+  );
+
+  setLoading(true);
+  try {
+    const pdfBlob = await generateStyledPdf();
+
+    const formDataToSend = new FormData();
+    formDataToSend.append("email", formData.email);
+    formDataToSend.append("file", pdfBlob, "requirements-summary.pdf");
+    formDataToSend.append("name", formData.name);
+    formDataToSend.append("phone", formData.phone);
+    formDataToSend.append("message", formData.message);
+    formDataToSend.append("grandTotal", grandTotal);
     formDataToSend.append("tableDetails", formatTableDetails());
 
-      console.log(formDataToSend);
+    const res = await fetch("https://app.aspireths.com/send-app-email", {
+      method: "POST",
+      body: formDataToSend,
+    });
 
-      const res = await fetch("https://app.aspireths.com/send-app-email", {
-        method: "POST",
-        body: formDataToSend,
-      });
-      if (res.ok) alert("✅ Email sent successfully!");
-      else alert("❌ Failed to send email.");
-    } catch (err) {
-      alert("❌ Error generating or sending PDF.");
-    }
-    setLoading(false);
-  };
+    if (res.ok) alert("✅ Email sent successfully!");
+    else alert("❌ Failed to send email.");
+  } catch (err) {
+    console.error(err);
+    alert("❌ Error generating or sending PDF.");
+  }
+  setLoading(false);
+};
+
 
   return (
     <div className="requirements-container">
