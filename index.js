@@ -44,8 +44,25 @@ const upload = multer({
 // -----------------------------------------
 // Middleware
 // -----------------------------------------
-app.use(cors({ origin: ["https://frontend.app.aspireths.com", "http://localhost:5173"], methods: ["GET", "POST"], allowedHeaders: ["Content-Type", "Authorization"] }));
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://frontend.app.aspireths.com",
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("CORS not allowed"));
+    },
+  })
+);
+
 app.use(express.json());
+
+
 
 
 // -----------------------------------------
