@@ -222,7 +222,7 @@ const RequirementsTable = ({
     formDataToSend.append("grandTotal", grandTotal);
     formDataToSend.append("tableDetails", formatTableDetails());
 
-    const res = await fetch("https://app.aspireths.com/send-app-email", {
+    const res = await fetch("http://localhost:5000/send-app-email", {
       method: "POST",
       body: formDataToSend,
     });
